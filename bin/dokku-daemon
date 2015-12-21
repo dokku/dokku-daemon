@@ -21,7 +21,11 @@ log() {
 }
 
 json_encode() {
-  [[ "$2" -eq 0 ]] && local status="true" || local status="false"
+  if [[ "$2" -eq 0 ]]; then
+    local status="true"
+  else
+    local status="false"
+  fi
 
   # Replace newlines with their escaped counterparts
   local output=$(echo -n "$1" | sed ':a;N;$!ba;s/\n/\\n/g')
@@ -97,7 +101,7 @@ server() {
 }
 
 main() {
-  while [[ "$#" > 0 ]]; do
+  while [[ "$#" -gt 0 ]]; do
     case "$1" in
       -h)
         usage

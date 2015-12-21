@@ -29,8 +29,6 @@ load test_helper
   [ -e "$BATS_TMPDIR/dokku-custom.sock" ]
 
   daemon_stop
-
-  rm -f "$BATS_TMPDIR/dokku-custom.sock"
 }
 
 @test "(env) DOKKU_LOGS_DIR controls location of daemon's logs" {
@@ -64,7 +62,6 @@ load test_helper
 
   run create_app "destroy-me"
   run client_command "apps:destroy destroy-me"
-  echo "$output"
   assert_output_contains "Destroying destroy-me"
   run destroy_app "destroy-me"
 

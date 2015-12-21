@@ -34,4 +34,4 @@ A development environment can be started with the provided Vagrantfile. To start
 The executable and Upstart init are symlinked to their respective directories rather than copied.
 
 ## License
-MIT License - See `LICENSE.txt`
+(MIT License)[LICENSE.txt]
