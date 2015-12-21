@@ -1,4 +1,4 @@
 sudo: required
 language: bash
-install: sudo make ci-dependencies
+install: sudo make ci-dependencies install
 script: make test
