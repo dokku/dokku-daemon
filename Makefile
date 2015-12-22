@@ -1,16 +1,16 @@
 # Assumes Ubuntu 14.04
 
-.PHONY: install develop ci-dependencies test
+.PHONY: install develop ci-dependencies socat test
 
 install:
 	cp bin/dokku-daemon /usr/local/bin/dokku-daemon
 	cp init/dokku-daemon.conf /etc/init/dokku-daemon.conf
-	sleep 5 && initctl reload-configuration
+	$(MAKE) socat
 
 develop:
 	ln -s $(PWD)/bin/dokku-daemon /usr/local/bin/dokku-daemon
 	ln -s $(PWD)/init/dokku-daemon.conf /etc/init/dokku-daemon.conf
-	sleep 5 && initctl reload-configuration
+	$(MAKE) socat
 
 ci-dependencies: shellcheck bats
 
@@ -33,6 +33,16 @@ ifeq ($(shell uname),Darwin)
 else
 	sudo add-apt-repository ppa:duggan/bats --yes
 	sudo apt-get update -qq && sudo apt-get install -qq -y bats
+endif
+endif
+
+socat:
+ifeq ($(shell socat > /dev/null 2>&1 ; echo $$?),127)
+ifeq ($(shell uname),Darwin)
+	brew install socat
+else
+	sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse'
+	sudo apt-get update -qq && sudo apt-get install -qq -y socat
 endif
 endif
 

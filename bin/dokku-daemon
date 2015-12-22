@@ -3,9 +3,9 @@
 set -eo pipefail
 
 VERSION="0.0.1"
-DOKKU_SOCK_PATH=${DOKKU_SOCK_PATH:="/tmp/dokku-daemon.sock"}
-DOKKU_FIFO_PATH=${DOKKU_FIFO_PATH:="/tmp/dokku-daemon.fifo"}
-DOKKU_LOGS_DIR=${DOKKU_LOGS_DIR:="/var/log/dokku"}
+export DOKKU_SOCK_PATH=${DOKKU_SOCK_PATH:="/tmp/dokku-daemon.sock"}
+export DOKKU_LOCK_PATH=${DOKKU_LOCK_PATH:="/tmp/dokku-daemon.lock"}
+export DOKKU_DAEMON_LOGFILE=${DOKKU_DAEMON_LOGFILE:="/var/log/dokku/dokku-daemon.log"}
 
 usage() {
   echo "Usage: dokku-daemon [-h|-v]"
@@ -17,7 +17,7 @@ version() {
 
 log() {
   timestamp=$(date "+%Y-%m-%d %H:%M:%S %Z")
-  echo "[$timestamp] $1" >> "$DOKKU_LOGS_DIR/dokku-daemon.log"
+  echo "[$timestamp] $1" >> "$DOKKU_DAEMON_LOGFILE"
 }
 
 json_encode() {
@@ -33,9 +33,13 @@ json_encode() {
   printf '{"ok":%s,"output":"%s"}' "$status" "$output"
 }
 
+cache_commands() {
+  dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
+}
+
 cleanup() {
   rm -f "$DOKKU_SOCK_PATH"
-  rm -f "$DOKKU_FIFO_PATH"
+  rm -f "$DOKKU_LOCK_PATH"
 
   log "Stopping daemon..."
 
@@ -45,19 +49,21 @@ cleanup() {
 server() {
   trap 'cleanup' TERM ABRT QUIT EXIT KILL
 
-  # list valid commands for dokku
-  local commands=$(dokku help | awk '/^    /{ print $1 }')
-
   # remove previously created devices
+  rm -f "$DOKKU_LOCK_PATH"
   rm -f "$DOKKU_SOCK_PATH"
-  rm -f "$DOKKU_FIFO_PATH"
 
-  mkfifo "$DOKKU_FIFO_PATH"
+  # valid commands are written to the lock file
+  cache_commands
 
   # start accepting connections
   log "Listening on $DOKKU_SOCK_PATH..."
 
-  nc -lkU "$DOKKU_SOCK_PATH" < "$DOKKU_FIFO_PATH" | while read input; do
+  socat unix-listen:"$DOKKU_SOCK_PATH",fork exec:"$0 -c",fdin=3,fdout=4
+}
+
+connection() {
+  while read -u 3 input; do
     # parse command components into an array
     local cmd=($input)
 
@@ -67,17 +73,23 @@ server() {
         status=1
         ;;
       commands)
-        response="$commands"
+        response=$(cat "$DOKKU_LOCK_PATH")
+        status=0
+        ;;
+      refresh)
+        cache_commands
+        response="Refreshed commands"
         status=0
         ;;
       *)
-        if echo "$commands" | grep -q "^${cmd[0]}$"; then
+        if grep -q "^${cmd[0]}$" "$DOKKU_LOCK_PATH"; then
           set +e
 
           if [[ "${cmd[0]}" = "apps:destroy" ]]; then
-            response=$(echo "${cmd[1]}" | dokku "${cmd[@]}" 2>&1)
+            response=$(echo "${cmd[1]}" | flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
+            status="$?"
           else
-            response=$(dokku "${cmd[@]}" 2>&1)
+            response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
             status="$?"
           fi
 
@@ -94,10 +106,8 @@ server() {
     log "[cmd] $input"
     log "[res] $formatted"
 
-    echo "$formatted"
-  done > "$DOKKU_FIFO_PATH" &
-
-  wait
+    echo "$formatted" >&4
+  done
 }
 
 main() {
@@ -109,6 +119,10 @@ main() {
         ;;
       -v)
         version
+        exit 0
+        ;;
+      -c)
+        connection
         exit 0
         ;;
       *)

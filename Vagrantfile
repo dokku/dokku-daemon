@@ -29,5 +29,6 @@ Vagrant.configure(2) do |config|
     vm.vm.provision :shell, :inline => "apt-get update > /dev/null && apt-get -qq -y install git > /dev/null"
     vm.vm.provision :shell, :inline => "wget https://raw.githubusercontent.com/dokku/dokku/#{DOKKU_TAG}/bootstrap.sh && DOKKU_TAG=#{DOKKU_TAG} bash bootstrap.sh"
     vm.vm.provision :shell, :inline => "cd /dokku-daemon && make ci-dependencies develop"
+    vm.vm.provision :shell, :inline => "initctl reload-configuration"
   end
 end
