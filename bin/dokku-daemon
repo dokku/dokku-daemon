@@ -1,0 +1,138 @@
+#!/bin/bash
+
+set -eo pipefail
+
+VERSION="0.0.1"
+export DOKKU_SOCK_PATH=${DOKKU_SOCK_PATH:="/tmp/dokku-daemon.sock"}
+export DOKKU_LOCK_PATH=${DOKKU_LOCK_PATH:="/tmp/dokku-daemon.lock"}
+export DOKKU_DAEMON_LOGFILE=${DOKKU_DAEMON_LOGFILE:="/var/log/dokku/dokku-daemon.log"}
+
+usage() {
+  echo "Usage: dokku-daemon [-h|-v]"
+}
+
+version() {
+  echo "Version $VERSION"
+}
+
+log() {
+  timestamp=$(date "+%Y-%m-%d %H:%M:%S %Z")
+  echo "[$timestamp] $1" >> "$DOKKU_DAEMON_LOGFILE"
+}
+
+json_encode() {
+  if [[ "$2" -eq 0 ]]; then
+    local status="true"
+  else
+    local status="false"
+  fi
+
+  # Replace newlines with their escaped counterparts
+  local output=$(echo -n "$1" | sed ':a;N;$!ba;s/\n/\\n/g')
+
+  printf '{"ok":%s,"output":"%s"}' "$status" "$output"
+}
+
+cache_commands() {
+  dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
+}
+
+cleanup() {
+  rm -f "$DOKKU_SOCK_PATH"
+  rm -f "$DOKKU_LOCK_PATH"
+
+  log "Stopping daemon..."
+
+  trap - TERM && kill 0
+}
+
+server() {
+  trap 'cleanup' TERM ABRT QUIT EXIT KILL
+
+  # remove previously created devices
+  rm -f "$DOKKU_LOCK_PATH"
+  rm -f "$DOKKU_SOCK_PATH"
+
+  # valid commands are written to the lock file
+  cache_commands
+
+  # start accepting connections
+  log "Listening on $DOKKU_SOCK_PATH..."
+
+  socat unix-listen:"$DOKKU_SOCK_PATH",fork exec:"$0 -c",fdin=3,fdout=4
+}
+
+connection() {
+  while read -u 3 input; do
+    # parse command components into an array
+    local cmd=($input)
+
+    case "${cmd[0]}" in
+      shell)
+        response="Not implemented"
+        status=1
+        ;;
+      commands)
+        response=$(cat "$DOKKU_LOCK_PATH")
+        status=0
+        ;;
+      refresh)
+        cache_commands
+        response="Refreshed commands"
+        status=0
+        ;;
+      *)
+        if grep -q "^${cmd[0]}$" "$DOKKU_LOCK_PATH"; then
+          set +e
+
+          if [[ "${cmd[0]}" = "apps:destroy" ]]; then
+            response=$(echo "${cmd[1]}" | flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
+            status="$?"
+          else
+            response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
+            status="$?"
+          fi
+
+          set -e
+        else
+          response="Invalid command"
+          status=1
+        fi
+        ;;
+    esac
+
+    formatted=$(json_encode "$response" "$status")
+
+    log "[cmd] $input"
+    log "[res] $formatted"
+
+    echo "$formatted" >&4
+  done
+}
+
+main() {
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      -h)
+        usage
+        exit 0
+        ;;
+      -v)
+        version
+        exit 0
+        ;;
+      -c)
+        connection
+        exit 0
+        ;;
+      *)
+        echo "Error: Unkown option $1" 1>&2
+        exit 1
+        ;;
+    esac
+  done
+
+  server
+}
+
+main "$@"
