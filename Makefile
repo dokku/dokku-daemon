@@ -3,13 +3,13 @@
 .PHONY: install develop ci-dependencies socat test
 
 install:
-	cp bin/dokku-daemon /usr/local/bin/dokku-daemon
+	cp bin/dokku-daemon /usr/bin/dokku-daemon
 	cp init/dokku-daemon.conf /etc/init/dokku-daemon.conf
 	$(MAKE) socat
 
 develop:
-	rm -f /usr/local/bin/dokku-daemon /etc/init/dokku-daemon.conf
-	ln -s $(PWD)/bin/dokku-daemon /usr/local/bin/dokku-daemon
+	rm -f /usr/bin/dokku-daemon /etc/init/dokku-daemon.conf
+	ln -s $(PWD)/bin/dokku-daemon /usr/bin/dokku-daemon
 	ln -s $(PWD)/init/dokku-daemon.conf /etc/init/dokku-daemon.conf
 	$(MAKE) socat
 
