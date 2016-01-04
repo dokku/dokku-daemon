@@ -3,7 +3,7 @@
 
 BOX_NAME = ENV["BOX_NAME"] || "bento/ubuntu-14.04"
 BOX_MEMORY = ENV["BOX_MEMORY"] || "512"
-DOKKU_TAG = "v0.4.6"
+DOKKU_TAG = "v0.4.9"
 DOKKU_DOMAIN = ENV["DOKKU_DOMAIN"] || "dokku.me"
 DOKKU_IP = ENV["DOKKU_IP"] || "10.0.0.2"
 
