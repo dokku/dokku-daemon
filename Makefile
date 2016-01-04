@@ -8,6 +8,7 @@ install:
 	$(MAKE) socat
 
 develop:
+	rm -f /usr/local/bin/dokku-daemon /etc/init/dokku-daemon.conf
 	ln -s $(PWD)/bin/dokku-daemon /usr/local/bin/dokku-daemon
 	ln -s $(PWD)/init/dokku-daemon.conf /etc/init/dokku-daemon.conf
 	$(MAKE) socat
