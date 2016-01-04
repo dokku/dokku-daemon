@@ -7,6 +7,8 @@ export DOKKU_SOCK_PATH=${DOKKU_SOCK_PATH:="/tmp/dokku-daemon.sock"}
 export DOKKU_LOCK_PATH=${DOKKU_LOCK_PATH:="/tmp/dokku-daemon.lock"}
 export DOKKU_DAEMON_LOGFILE=${DOKKU_DAEMON_LOGFILE:="/var/log/dokku/dokku-daemon.log"}
 
+mkdir -p "$(dirname "$DOKKU_LOCK_PATH")" "$(dirname "$DOKKU_LOCK_PATH")" "$(dirname "$DOKKU_DAEMON_LOGFILE")" || true
+
 usage() {
   echo "Usage: dokku-daemon [-h|-v]"
 }
