@@ -66,5 +66,5 @@ daemon_stop() {
 }
 
 client_command() {
-  echo "$1" | sudo nc -U "/tmp/dokku-daemon.sock" -q 2
+  echo "$1" | sudo nc -U "/var/run/dokku-daemon/dokku-daemon.sock" -q 2
 }

@@ -16,7 +16,7 @@ As a user with access to `sudo`:
 
 ## Specifications
 
-* Daemon listens on a UNIX domain socket (by default created at `/tmp/dokku-daemon.sock`)
+* Daemon listens on a UNIX domain socket (by default created at `/var/run/dokku-daemon/dokku-daemon.sock`)
 * Commands issued to the daemon take the same form as those used with `dokku` on the command-line
 * Command names are validated before execution
 * Responses are sent as line-delimited JSON
