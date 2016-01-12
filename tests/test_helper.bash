@@ -58,11 +58,29 @@ destroy_app() {
 
 # dokku-daemon functions
 daemon_start() {
-  sudo start dokku-daemon "$@"  &> /dev/null || sudo restart dokku-daemon "$@" &> /dev/null
+  if [[ `/sbin/init --version 2>&1` =~ upstart ]]; then
+    sudo start dokku-daemon "$@"  &> /dev/null || sudo restart dokku-daemon "$@" &> /dev/null
+  fi
+
+  if [[ `systemctl 2>&1` =~ -\.mount ]]; then
+    if [[ "$#" -gt 0 ]]; then
+      echo "$@" | sudo tee /etc/systemd/system/dokku-daemon.env
+      sudo systemctl daemon-reload
+    fi
+
+    sudo systemctl start dokku-daemon.service
+  fi
 }
 
 daemon_stop() {
-  sudo stop dokku-daemon &> /dev/null
+  if [[ `/sbin/init --version 2>&1` =~ upstart ]]; then
+    sudo stop dokku-daemon &> /dev/null
+  fi
+
+  if [[ `systemctl 2>&1` =~ -\.mount ]]; then
+    sudo systemctl stop dokku-daemon.service
+    sudo rm -f /etc/systemd/system/dokku-daemon.env
+  fi
 }
 
 client_command() {

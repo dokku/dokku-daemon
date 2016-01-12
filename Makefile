@@ -1,16 +1,30 @@
-# Assumes Ubuntu 14.04
+# Assumes Ubuntu >= 14.04
 
 .PHONY: install develop ci-dependencies socat test
 
 install:
 	cp bin/dokku-daemon /usr/bin/dokku-daemon
+ifeq ($(shell /sbin/init --version 2>&1 | grep -q upstart; echo $$?), 0)
 	cp init/dokku-daemon.conf /etc/init/dokku-daemon.conf
+	initctl reload-configuration
+endif
+ifeq ($(shell systemctl 2>&1 | grep -q "\-\.mount"; echo $$?), 0)
+	cp init/dokku-daemon.service /etc/systemd/system/dokku-daemon.service
+	systemctl daemon-reload
+endif
 	$(MAKE) socat
 
 develop:
-	rm -f /usr/bin/dokku-daemon /etc/init/dokku-daemon.conf
-	ln -s $(PWD)/bin/dokku-daemon /usr/bin/dokku-daemon
-	ln -s $(PWD)/init/dokku-daemon.conf /etc/init/dokku-daemon.conf
+	rm -f /usr/bin/dokku-daemon /etc/init/dokku-daemon.conf /etc/systemd/system/dokku-daemon.service
+	ln -s $(CURDIR)/bin/dokku-daemon /usr/bin/dokku-daemon
+ifeq ($(shell /sbin/init --version 2>&1 | grep -q upstart; echo $$?), 0)
+	ln -s $(CURDIR)/init/dokku-daemon.conf /etc/init/dokku-daemon.conf
+	initctl reload-configuration
+endif
+ifeq ($(shell systemctl 2>&1 | grep -q "\-\.mount"; echo $$?), 0)
+	ln -s $(CURDIR)/init/dokku-daemon.service /etc/systemd/system/dokku-daemon.service
+	systemctl daemon-reload
+endif
 	$(MAKE) socat
 
 ci-dependencies: shellcheck bats

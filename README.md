@@ -4,7 +4,7 @@ A daemon wrapper around [Dokku](https://github.com/dokku/dokku)
 
 ## Requirements
 
-A VM running Ubuntu 14.04 x64 with Dokku v0.4.6 installed
+A VM running Ubuntu 14.04 x64 or later with Dokku v0.4.9 installed
 
 ## Installing
 
@@ -40,7 +40,7 @@ A development environment can be started with the provided Vagrantfile. To start
     cd /dokku-daemon
     make test
 
-The executable and Upstart init are symlinked to their respective directories rather than copied.
+The executable and init scripts are symlinked to their respective directories rather than copied. To test using Systemd, start Vagrant with environment variable `BOX_NAME` set to `bento/ubuntu-15.04`.
 
 ## License
 
