@@ -61,6 +61,17 @@ else
 endif
 endif
 
+setup-travis:
+	wget -nv -O - https://packagecloud.io/gpg.key | apt-key add -
+	echo "deb https://packagecloud.io/dokku/dokku/ubuntu/ trusty main" | tee /etc/apt/sources.list.d/dokku.list
+	apt-get update
+	apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-engine
+ifeq ($(DOKKU_VERSION),master)
+	apt-get -y --no-install-recommends install "dokku"
+else
+	apt-get -y --no-install-recommends install "dokku=$(DOKKU_VERSION)"
+endif
+
 test:
 	@bats tests
 	@shellcheck bin/dokku-daemon

@@ -36,7 +36,11 @@ json_encode() {
 }
 
 cache_commands() {
-  dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
+  if dokku version | grep '^0.4.'; then
+    dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
+  else
+    dokku help --all | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
+  fi
 }
 
 cleanup() {

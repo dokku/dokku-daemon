@@ -1,4 +1,4 @@
-# dokku-daemon [![Travis branch](https://img.shields.io/travis/dokku/dokku-daemon/master.svg?style=flat-square)]()
+# dokku-daemon [![Travis branch](https://img.shields.io/travis/dokku/dokku-daemon/master.svg?style=flat-square)](https://travis-ci.org/dokku/dokku-daemon)
 
 A daemon wrapper around [Dokku](https://github.com/dokku/dokku)
 
