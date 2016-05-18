@@ -68,10 +68,34 @@ server() {
   socat unix-listen:"$DOKKU_SOCK_PATH",fork exec:"$0 -c",fdin=3,fdout=4
 }
 
+remove_flags() {
+  for arg in "$@"; do
+    case "$arg" in
+      --quiet|--detach|--trace|--rm-container|--rm|--force)
+        shift
+        ;;
+      --app)
+        shift 2
+        ;;
+    esac
+  done
+  echo "$@"
+  return 0
+}
+
+
+is_valid_command() {
+  local cmd="$(remove_flags "$@" | tr ' ' "\n")"
+  local valid=false
+  grep -q "^${cmd[0]}$" "$DOKKU_LOCK_PATH" && valid=true
+  echo $valid
+}
+
 connection() {
   while read -u 3 input; do
     # parse command components into an array
     local cmd=($input)
+    local is_valid=$(is_valid_command "${cmd[@]}")
 
     case "${cmd[0]}" in
       shell)
@@ -88,12 +112,11 @@ connection() {
         status=0
         ;;
       *)
-        if grep -q "^${cmd[0]}$" "$DOKKU_LOCK_PATH"; then
+        if [[ "$is_valid" == "true" ]]; then
           set +e
-
-          if [[ "${cmd[0]}" = "apps:destroy" ]]; then
-            response=$(echo "${cmd[1]}" | flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
-            status="$?"
+          if [[ " ${cmd[@]} " == *" apps:destroy "* ]] && [[ ! " ${cmd[@]} " == *" --force "* ]]; then
+            response="Requires --force flag"
+            status=1
           else
             response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
             status="$?"

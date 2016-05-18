@@ -62,8 +62,27 @@ load test_helper
 
   run create_app "destroy-me"
   run client_command "apps:destroy destroy-me"
-  assert_contains "${lines[*]}" "Destroying destroy-me"
+  assert_contains "${lines[*]}" '"ok":false'
+  assert_contains "${lines[*]}" "Requires --force flag"
   run destroy_app "destroy-me"
+
+  run create_app "destroy-me-app-flag"
+  run client_command "--app destroy-me-app-flag apps:destroy"
+  assert_contains "${lines[*]}" '"ok":false'
+  assert_contains "${lines[*]}" "Requires --force flag"
+  run destroy_app "destroy-me-app-flag"
+
+  run create_app "destroy-me-force"
+  run client_command "--force apps:destroy destroy-me-force"
+  assert_contains "${lines[*]}" '"ok":true'
+  assert_contains "${lines[*]}" "Destroying destroy-me-force"
+  run destroy_app "destroy-me-force"
+
+  run create_app "destroy-me-force-app-flag"
+  run client_command "--app destroy-me-force-app-flag --force apps:destroy"
+  assert_contains "${lines[*]}" '"ok":true'
+  assert_contains "${lines[*]}" "Destroying destroy-me-force-app-flag"
+  run destroy_app "destroy-me-force-app-flag"
 
   daemon_stop
 }
