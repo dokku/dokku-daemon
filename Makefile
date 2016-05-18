@@ -3,13 +3,14 @@
 .PHONY: install develop ci-dependencies socat test
 
 install:
-	cp bin/dokku-daemon /usr/bin/dokku-daemon
+	rm -f /usr/bin/dokku-daemon /etc/init/dokku-daemon.conf /etc/systemd/system/dokku-daemon.service
+	cp -f bin/dokku-daemon /usr/bin/dokku-daemon
 ifeq ($(shell /sbin/init --version 2>&1 | grep -q upstart; echo $$?), 0)
-	cp init/dokku-daemon.conf /etc/init/dokku-daemon.conf
+	cp -f init/dokku-daemon.conf /etc/init/dokku-daemon.conf
 	initctl reload-configuration
 endif
 ifeq ($(shell systemctl 2>&1 | grep -q "\-\.mount"; echo $$?), 0)
-	cp init/dokku-daemon.service /etc/systemd/system/dokku-daemon.service
+	cp -f init/dokku-daemon.service /etc/systemd/system/dokku-daemon.service
 	systemctl daemon-reload
 endif
 	$(MAKE) socat
