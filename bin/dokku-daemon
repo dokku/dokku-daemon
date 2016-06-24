@@ -98,7 +98,7 @@ connection() {
     local is_valid=$(is_valid_command "${cmd[@]}")
 
     case "${cmd[0]}" in
-      shell)
+      enter|shell)
         response="Not implemented"
         status=1
         ;;
