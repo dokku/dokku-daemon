@@ -88,6 +88,7 @@ is_valid_command() {
   local cmd="$(remove_flags "$@" | tr ' ' "\n")"
   local valid=false
   grep -q "^${cmd[0]}$" "$DOKKU_LOCK_PATH" && valid=true
+  [[ "${cmd[0]}" == *help ]] && valid=true
   echo $valid
 }
 
