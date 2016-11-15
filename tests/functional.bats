@@ -53,6 +53,26 @@ load test_helper
   daemon_stop
 }
 
+@test "(cmd) *:help dokku commands are allowed through" {
+  daemon_start
+
+  run client_command "apps:help"
+  assert_contains "${lines[*]}" '"ok":true'
+  assert_contains "${lines[*]}" 'apps:create <app>'
+
+  daemon_stop
+}
+
+@test "(cmd) non-existant *:help dokku commands fail" {
+  daemon_start
+
+  run client_command "apps:create:help"
+  assert_contains "${lines[*]}" '"ok":false'
+  assert_contains "${lines[*]}" 'is not a dokku command'
+
+  daemon_stop
+}
+
 @test "(cmd) commands that prompt the user are handled correctly" {
   daemon_start
 
