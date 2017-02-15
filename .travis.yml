@@ -2,12 +2,17 @@ sudo: required
 dist: trusty
 language: bash
 env:
-  - DOKKU_LOCK_PATH=/var/lock/dokku-daemon/dokku-daemon.lock DOKKU_SOCK_PATH=/var/run/dokku-daemon/dokku-daemon.sock
+  global:
+    - DOKKU_LOCK_PATH=/var/lock/dokku-daemon/dokku-daemon.lock
+    - DOKKU_SOCK_PATH=/var/run/dokku-daemon/dokku-daemon.sock
+  matrix:
+    - DOKKU_VERSION=master
+    - DOKKU_VERSION=0.4.14
 before_install:
-        - wget https://raw.githubusercontent.com/dokku/dokku/v0.4.9/bootstrap.sh && sudo DOKKU_TAG="v0.4.9" bash bootstrap.sh
+  - sudo -E make setup-travis
 install:
-        - sudo make ci-dependencies install
-        - sudo initctl reload-configuration
-        - sleep 5
+  - sudo make ci-dependencies install
+  - sudo initctl reload-configuration
+  - sleep 5
 script:
-        - make test
+  - make test

@@ -6,7 +6,7 @@ Environment="DOKKU_LOCK_PATH=/var/lock/dokku-daemon/dokku-daemon.lock"
 Environment="DOKKU_SOCK_PATH=/var/run/dokku-daemon/dokku-daemon.sock"
 Environment="USER=dokku"
 Environment="GROUP=dokku"
-Environment="PERMS=0666"
+Environment="PERMS=0777"
 EnvironmentFile=-/etc/systemd/system/dokku-daemon.env
 
 ExecStartPre=/bin/bash -c 'DOKKU_LOCK_DIR=$(dirname ${DOKKU_LOCK_PATH}); if [ "$${DOKKU_LOCK_DIR}" != "/tmp" ]; then mkdir -p -m ${PERMS} $${DOKKU_LOCK_DIR}; chown ${USER}:${GROUP} $${DOKKU_LOCK_DIR}; fi'

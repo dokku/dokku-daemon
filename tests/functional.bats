@@ -53,6 +53,26 @@ load test_helper
   daemon_stop
 }
 
+@test "(cmd) *:help dokku commands are allowed through" {
+  daemon_start
+
+  run client_command "apps:help"
+  assert_contains "${lines[*]}" '"ok":true'
+  assert_contains "${lines[*]}" 'apps:create <app>'
+
+  daemon_stop
+}
+
+@test "(cmd) non-existant *:help dokku commands fail" {
+  daemon_start
+
+  run client_command "apps:create:help"
+  assert_contains "${lines[*]}" '"ok":false'
+  assert_contains "${lines[*]}" 'is not a dokku command'
+
+  daemon_stop
+}
+
 @test "(cmd) commands that prompt the user are handled correctly" {
   daemon_start
 
@@ -62,8 +82,34 @@ load test_helper
 
   run create_app "destroy-me"
   run client_command "apps:destroy destroy-me"
-  assert_contains "${lines[*]}" "Destroying destroy-me"
+  assert_contains "${lines[*]}" '"ok":false'
+  assert_contains "${lines[*]}" "Requires --force flag"
   run destroy_app "destroy-me"
+
+  run create_app "destroy-me-force"
+  run client_command "--force apps:destroy destroy-me-force"
+  assert_contains "${lines[*]}" '"ok":true'
+  assert_contains "${lines[*]}" "Destroying destroy-me-force"
+  run destroy_app "destroy-me-force"
+}
+
+@test "(cmd) commands with app flag that prompt the user are handled correctly" {
+  if dokku version | grep '^0.4.'; then
+    skip "--app flag not available below 0.5.x"
+  fi
+  daemon_start
+
+  run create_app "destroy-me-app-flag"
+  run client_command "--app destroy-me-app-flag apps:destroy"
+  assert_contains "${lines[*]}" '"ok":false'
+  assert_contains "${lines[*]}" "Requires --force flag"
+  run destroy_app "destroy-me-app-flag"
+
+  run create_app "destroy-me-force-app-flag"
+  run client_command "--app destroy-me-force-app-flag --force apps:destroy"
+  assert_contains "${lines[*]}" '"ok":true'
+  assert_contains "${lines[*]}" "Destroying destroy-me-force-app-flag"
+  run destroy_app "destroy-me-force-app-flag"
 
   daemon_stop
 }

@@ -3,7 +3,7 @@
 
 BOX_NAME = ENV["BOX_NAME"] || "bento/ubuntu-14.04"
 BOX_MEMORY = ENV["BOX_MEMORY"] || "512"
-DOKKU_TAG = "v0.4.9"
+DOKKU_TAG = ENV["DOKKU_TAG"] || "v0.7.2"
 
 Vagrant.configure(2) do |config|
   config.vm.box = BOX_NAME
