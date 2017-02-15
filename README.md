@@ -14,6 +14,14 @@ As a user with access to `sudo`:
     cd dokku-daemon
     sudo make install
 
+## Debian Notes
+
+As a user with access to `sudo`:
+    git clone https://github.com/dokku/dokku-daemon
+    cd dokku-daemon
+    sudo apt-get install socat
+    sudo make install
+
 ## Specifications
 
 * Daemon listens on a UNIX domain socket (by default created at `/var/run/dokku-daemon/dokku-daemon.sock`)
