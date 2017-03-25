@@ -5,6 +5,11 @@
 install:
 	rm -f /usr/bin/dokku-daemon /etc/init/dokku-daemon.conf /etc/systemd/system/dokku-daemon.service
 	cp -f bin/dokku-daemon /usr/bin/dokku-daemon
+	mkdir -p -m 0777 /var/lock/dokku-daemon
+	chown -R dokku:dokku /var/lock/dokku-daemon
+	mkdir -p -m 0777 /var/run/dokku-daemon
+	chown -R dokku:dokku /var/run/dokku-daemon
+	chown -R dokku:dokku /var/log/dokku
 ifeq ($(shell /sbin/init --version 2>&1 | grep -q upstart; echo $$?), 0)
 	cp -f init/dokku-daemon.conf /etc/init/dokku-daemon.conf
 	initctl reload-configuration
