@@ -119,8 +119,20 @@ connection() {
             response="Requires --force flag"
             status=1
           else
-            response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
-            status="$?"
+            if [[ " ${cmd[-2]} " == *"<"* ]]; then # Check if stdin
+              file_path=${cmd[-1]}
+              unset 'cmd[${#cmd[@]}-1]' # remove last element which is file path
+              unset 'cmd[${#cmd[@]}-1]' # remove last element which is <
+              response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" < ${file_path} 2>&1)
+            elif [[ " ${cmd[-2]} " == *">"* ]]; then  # Check if stdout
+              file_path=${cmd[-1]}
+              unset 'cmd[${#cmd[@]}-1]' # remove last element which is file path
+              unset 'cmd[${#cmd[@]}-1]' # remove last element which is >
+              response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" > ${file_path} 2>&1)
+            else
+              response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
+              status="$?"
+            fi
           fi
 
           set -e
