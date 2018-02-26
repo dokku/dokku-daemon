@@ -30,7 +30,9 @@ json_encode() {
   fi
 
   # Replace newlines with their escaped counterparts
-  local output=$(echo -n "$1" | sed ':a;N;$!ba;s/\n/\\n/g')
+  # Escape double quotation
+  # Remove( color / special / escape / ANSI ) codes
+  local output=$(echo -n "$1" | sed ':a;N;$!ba;s/\n/\\n/g;s/\"/\\\"/g;s,\x1B\[[0-9;]*[a-zA-Z],,g')
 
   printf '{"ok":%s,"output":"%s"}' "$status" "$output"
 }
