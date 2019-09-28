@@ -36,21 +36,7 @@ json_encode() {
 }
 
 cache_commands() {
-  DOKKU_VERSION=$(dokku version | grep -oh '[0-9]*')
-  DOKKU_MAJOR=$(echo $DOKKU_VERSION | cut -d' ' -f1)
-  DOKKU_MINOR=$(echo $DOKKU_VERSION | cut -d' ' -f2)
-  DOKKU_RELEASE=$(echo $DOKKU_VERSION | cut -d' ' -f3)
-
-  # If major/minor version is newer than 0.4 then use dokku help
-  # Else if major/minor/release is 0.4.9 then use dokku help
-  # Otherwise use dokku help --all
-  if (( $(echo "$DOKKU_MAJOR.$DOKKU_MINOR < 0.4" | bc -l) )); then
-    dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
-  elif [ "$DOKKU_MAJOR.$DOKKU_MINOR.$DOKKU_RELEASE" == "0.4.9" ]; then
-    dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
-  else
     dokku help --all | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
-  fi
 }
 
 cleanup() {
@@ -75,7 +61,7 @@ server() {
   # start accepting connections
   log "Listening on $DOKKU_SOCK_PATH..."
 
-  socat unix-listen:"$DOKKU_SOCK_PATH",fork exec:"$0 -c",fdin=3,fdout=4
+  socat unix-listen:"$DOKKU_SOCK_PATH",fork,perm-early=0777 exec:"$0 -c",fdin=3,fdout=4
 }
 
 remove_flags() {
@@ -129,20 +115,8 @@ connection() {
             response="Requires --force flag"
             status=1
           else
-            if [[ " ${cmd[-2]} " == *"<"* ]]; then # Check if stdin
-              file_path=${cmd[-1]}
-              unset "cmd[${#cmd[@]}-1]" # remove last element which is file path
-              unset "cmd[${#cmd[@]}-1]" # remove last element which is <
-              response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" < ${file_path} 2>&1)
-            elif [[ " ${cmd[-2]} " == *">"* ]]; then  # Check if stdout
-              file_path=${cmd[-1]}
-              unset "cmd[${#cmd[@]}-1]" # remove last element which is file path
-              unset "cmd[${#cmd[@]}-1]" # remove last element which is >
-              response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" > ${file_path} 2>&1)
-            else
               response=$(flock "$DOKKU_LOCK_PATH" dokku "${cmd[@]}" 2>&1)
               status="$?"
-            fi
           fi
 
           set -e
