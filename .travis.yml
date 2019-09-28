@@ -12,7 +12,6 @@ before_install:
   - sudo -E make setup-travis
 install:
   - sudo make ci-dependencies install
-  - sudo initctl reload-configuration
   - sleep 5
 script:
   - make test
