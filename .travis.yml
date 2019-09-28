@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: bionic
 language: bash
 env:
   global:
@@ -7,7 +7,7 @@ env:
     - DOKKU_SOCK_PATH=/var/run/dokku-daemon/dokku-daemon.sock
   matrix:
     - DOKKU_VERSION=master
-    - DOKKU_VERSION=0.4.14
+    - DOKKU_VERSION=0.18.3
 before_install:
   - sudo -E make setup-travis
 install:
