@@ -36,7 +36,17 @@ json_encode() {
 }
 
 cache_commands() {
-  if dokku version | grep '^0.4.'; then
+  DOKKU_VERSION=$(dokku version | grep -oh '[0-9]*')
+  DOKKU_MAJOR=$(echo $DOKKU_VERSION | cut -d' ' -f1)
+  DOKKU_MINOR=$(echo $DOKKU_VERSION | cut -d' ' -f2)
+  DOKKU_RELEASE=$(echo $DOKKU_VERSION | cut -d' ' -f3)
+
+  # If major/minor version is newer than 0.4 then use dokku help
+  # Else if major/minor/release is 0.4.9 then use dokku help
+  # Otherwise use dokku help --all
+  if (( $(echo "$DOKKU_MAJOR.$DOKKU_MINOR < 0.4" | bc -l) )); then
+    dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
+  elif [ "$DOKKU_MAJOR.$DOKKU_MINOR.$DOKKU_RELEASE" == "0.4.9" ]; then
     dokku help | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
   else
     dokku help --all | awk '/^    /{ print $1 }' > "$DOKKU_LOCK_PATH"
