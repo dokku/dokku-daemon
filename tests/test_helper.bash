@@ -68,8 +68,11 @@ daemon_start() {
       sudo systemctl daemon-reload
     fi
 
-    sudo systemctl start dokku-daemon.service
+    sudo systemctl restart dokku-daemon.service
   fi
+
+  # Wait 1 second for daemon to start
+  sleep 1s
 }
 
 daemon_stop() {
