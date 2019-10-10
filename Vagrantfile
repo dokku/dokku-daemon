@@ -1,9 +1,9 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-BOX_NAME = ENV["BOX_NAME"] || "bento/ubuntu-14.04"
+BOX_NAME = ENV["BOX_NAME"] || "bento/ubuntu-18.04"
 BOX_MEMORY = ENV["BOX_MEMORY"] || "512"
-DOKKU_TAG = ENV["DOKKU_TAG"] || "v0.7.2"
+DOKKU_TAG = ENV["DOKKU_TAG"] || "v0.18.4"
 
 Vagrant.configure(2) do |config|
   config.vm.box = BOX_NAME
