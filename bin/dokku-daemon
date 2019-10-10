@@ -29,8 +29,8 @@ json_encode() {
     local status="false"
   fi
 
-  # Replace newlines with their escaped counterparts
-  local output=$(echo -n "$1" | sed ':a;N;$!ba;s/\n/\\n/g')
+  # Replace newlines and double quotes with their escaped counterparts
+  local output=$(echo -n "$1" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
 
   printf '{"ok":%s,"output":"%s"}' "$status" "$output"
 }
