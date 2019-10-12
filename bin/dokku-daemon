@@ -41,8 +41,8 @@ cache_commands() {
 }
 
 cleanup() {
-  cd $(echo "$DOKKU_SOCK_PATH" | sed 's/\(.*\)\/.*$/\1 /')
-  rm -rf $(basename "$DOKKU_SOCK_PATH")
+  cd "$(echo "$DOKKU_SOCK_PATH" | sed 's/\(.*\)\/.*$/\1 /')"
+  rm -rf "$(basename "$DOKKU_SOCK_PATH")"
 
   rm -f "$DOKKU_LOCK_PATH"
 
@@ -63,8 +63,8 @@ server() {
   # start accepting connections
   log "Listening on $DOKKU_SOCK_PATH..."
 
-  cd $(echo "$DOKKU_SOCK_PATH" | sed 's/\(.*\)\/.*$/\1 /')
-  rm -rf $(basename "$DOKKU_SOCK_PATH")
+  cd "$(echo "$DOKKU_SOCK_PATH" | sed 's/\(.*\)\/.*$/\1 /')"
+  rm -rf "$(basename "$DOKKU_SOCK_PATH")"
 
   socat unix-listen:"$DOKKU_SOCK_PATH",fork,perm-early=0777 exec:"$0 -c",fdin=3,fdout=4
 }
