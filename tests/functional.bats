@@ -42,7 +42,7 @@ load test_helper
 @test "(cmd) invalid dokku commands receive standard response" {
   daemon_start
 
-  run client_command "batman"
+  run client_command "app"
   assert_contains "${lines[*]}" '"ok":false'
   assert_contains "${lines[*]}" '"output":"Invalid command"'
 
