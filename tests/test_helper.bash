@@ -68,8 +68,11 @@ daemon_start() {
       sudo systemctl daemon-reload
     fi
 
-    sudo systemctl start dokku-daemon.service
+    sudo systemctl restart dokku-daemon.service
   fi
+
+  # Wait 1 second for daemon to start
+  sleep 1s
 }
 
 daemon_stop() {
@@ -84,5 +87,5 @@ daemon_stop() {
 }
 
 client_command() {
-  echo "$1" | sudo nc -U "/var/run/dokku-daemon/dokku-daemon.sock" -q 2
+  ./tests/test-socket/test-socket "$1"
 }

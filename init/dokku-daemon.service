@@ -11,10 +11,7 @@ EnvironmentFile=-/etc/systemd/system/dokku-daemon.env
 
 ExecStartPre=/bin/bash -c 'DOKKU_LOCK_DIR=$(dirname ${DOKKU_LOCK_PATH}); if [ "$${DOKKU_LOCK_DIR}" != "/tmp" ]; then mkdir -p -m ${PERMS} $${DOKKU_LOCK_DIR}; chown ${USER}:${GROUP} $${DOKKU_LOCK_DIR}; fi'
 ExecStartPre=/bin/bash -c 'DOKKU_SOCK_DIR=$(dirname ${DOKKU_SOCK_PATH}); if [ "$${DOKKU_SOCK_DIR}" != "/tmp" ]; then mkdir -p -m ${PERMS} $${DOKKU_SOCK_DIR}; chown ${USER}:${GROUP} $${DOKKU_SOCK_DIR}; fi'
-
 ExecStart=/usr/bin/dokku-daemon
-ExecStartPost=/bin/sleep 4
-ExecStartPost=/bin/chmod 777 ${DOKKU_SOCK_PATH}
 
 [Install]
 WantedBy=multi-user.target

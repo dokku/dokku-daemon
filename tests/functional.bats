@@ -120,7 +120,7 @@ load test_helper
   run create_app demo-app-one
   run create_app demo-app-two
 
-  run client_command "apps"
+  run client_command "apps:list"
   assert_contains "${lines[*]}" "\\n"
   [ "${#lines[@]}" -eq 1 ]
 
