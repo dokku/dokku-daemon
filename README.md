@@ -32,7 +32,7 @@ As a user with access to `sudo`:
 * No authentication layer (local/container connections only)
 * Multiple client connections are supported but only one command will be processed at a given time
 
-## Example Usage
+## Usage
 
 Start the service:
 
@@ -44,8 +44,54 @@ Use `socat` to connect to the socket:
 
 Example command and response:
 
-    < apps:create demo-app
-    > {"ok":true,"output":"Creating demo-app... done"}
+    < apps:create python-app
+    > {"ok":true,"output":"Creating python-app... done"}
+
+### Usage within a Dokku app
+
+To use this within a Dokku app named `python-app`, you would need to mount the socket:
+
+```shell
+dokku storage:mount python-app-app /var/run/dokku-daemon/dokku-daemon.sock:/var/run/dokku-daemon/dokku-daemon.sock
+```
+
+At this point, a command can be written to the mounted socket within your application. The following is some sample python code that would create an app named `example-app`:
+
+```python
+import os
+import subprocess
+
+def run_command(command, timeout=60):
+    daemon_socket = '/var/run/dokku-daemon/dokku-daemon.sock'
+    if not os.path.exists(daemon_socket) or not os.access(daemon_socket, os.W_OK):
+        return False
+
+    subprocess_command = [
+        'nc',
+        '-q', '2',            # time to wait after eof
+        '-w', '2',            # timeout
+        '-U', daemon_socket,  # socket to talk to
+    ]
+
+    ps = subprocess.Popen(['echo', command], stdout=subprocess.PIPE)
+    output = None
+
+    with subprocess.Popen(
+            subprocess_command,
+            stdin=ps.stdout,
+            stdout=subprocess.PIPE,
+            preexec_fn=os.setsid) as process:
+        try:
+            output = process.communicate(timeout=timeout)[0]
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+            output = process.communicate()[0]
+    ps.wait(timeout)
+
+    return ps.returncode == 0
+
+run_command("apps:create example-app")
+```
 
 ## Development
 
